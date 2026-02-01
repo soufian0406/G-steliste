@@ -1,1 +1,204 @@
-# G-steliste
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gästeliste</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .karte {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 6px 0;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #ff6f91;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        button:hover {
+            background: #ff4f7a;
+        }
+
+        .reset {
+            background: #999;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+
+        
+        li {
+            display: grid;
+            grid-template-columns: 30px 1fr 40px;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 30px;
+        }
+
+        .name {
+            display: flex;
+            flex-direction: column;
+            margin-left: 80px;
+            line-height: 1.2;
+        }
+
+        .vorname {
+            font-weight: bold;
+        }
+
+        .nachname {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .da {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .delete {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="karte">
+    <h2>🎈 Gästeliste 🎈</h2>
+
+    <input type="text" id="vorname" placeholder="Vorname">
+    <input type="text" id="nachname" placeholder="Nachname">
+
+    <button id="add">Gast hinzufügen</button>
+    <button class="reset" id="reset">Alle zurücksetzen</button>
+
+    <ul id="liste"></ul>
+</div>
+
+<script>
+    const vorname = document.getElementById("vorname");
+    const nachname = document.getElementById("nachname");
+    const addBtn = document.getElementById("add");
+    const resetBtn = document.getElementById("reset");
+    const liste = document.getElementById("liste");
+
+    let gaeste = JSON.parse(localStorage.getItem("gaeste")) || [];
+
+    function speichern() {
+        localStorage.setItem("gaeste", JSON.stringify(gaeste));
+    }
+
+    function render() {
+        liste.innerHTML = "";
+
+        gaeste.forEach((gast, index) => {
+            const li = document.createElement("li");
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = gast.da;
+            checkbox.addEventListener("change", () => {
+                gast.da = checkbox.checked;
+                speichern();
+                render();
+            });
+
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "name" + (gast.da ? " da" : "");
+
+            const vSpan = document.createElement("span");
+            vSpan.className = "vorname";
+            vSpan.textContent = gast.vorname;
+
+            const nSpan = document.createElement("span");
+            nSpan.className = "nachname";
+            nSpan.textContent = gast.nachname;
+
+            nameDiv.appendChild(vSpan);
+            nameDiv.appendChild(nSpan);
+
+            const del = document.createElement("button");
+            del.className = "delete";
+            del.textContent = "❌";
+            del.addEventListener("click", () => {
+                gaeste.splice(index, 1);
+                speichern();
+                render();
+            });
+
+            li.appendChild(checkbox);
+            li.appendChild(nameDiv);
+            li.appendChild(del);
+
+            liste.appendChild(li);
+        });
+    }
+
+    addBtn.addEventListener("click", () => {
+        const v = vorname.value.trim();
+        const n = nachname.value.trim();
+
+        if (v === "" || n === "") return;
+
+        gaeste.push({
+            vorname: v,
+            nachname: n,
+            da: false
+        });
+
+        speichern();
+        render();
+
+        vorname.value = "";
+        nachname.value = "";
+    });
+
+    resetBtn.addEventListener("click", () => {
+        gaeste = [];
+        speichern();
+        render();
+    });
+
+    render();
+</script>
+
+</body>
+</html>
